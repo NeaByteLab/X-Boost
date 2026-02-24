@@ -117,12 +117,16 @@
 
   /**
    * Reapply refresh state on storage change.
-   * @description Debounced; reads storage and calls applyRefreshState.
-   * @param changes - Storage change map (unused)
+   * @description Only when refresh-related keys change; avoids resetting countdown on queueLength etc.
+   * @param changes - Storage change map
    * @param areaName - Storage area; we only handle local
    */
   storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== 'local') {
+      return
+    }
+    const refreshKeyChanged = 'refreshEnabled' in changes || 'refreshIntervalSeconds' in changes
+    if (!refreshKeyChanged) {
       return
     }
     if (applyRefreshTimeout) {

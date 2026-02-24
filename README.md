@@ -141,14 +141,14 @@ Defaults: delay 10 s, refresh 60 s, scroll 5 s. The popup configures all of the 
 
 ## File structure
 
-| File            | Role                                                                                                                                  |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `manifest.json` | Declares content scripts (X/Twitter URLs), storage permission, popup, icon, background script.                                        |
-| `background.js` | Background script: badge countdown when Refresh Home is on; listens for `X_BOOST_REFRESH_RESET` and `storage.onChanged`.              |
-| `content.js`    | Injected into X/Twitter. Loads settings, runs queue + MutationObserver, scroll and refresh timers; notifies background before reload. |
-| `popup/`        | Popup UI: toggles and steppers for all settings; reads `queueLength` from storage for the queue stat.                                 |
-| `icons/`        | Extension icon (SVG).                                                                                                                 |
-| `preview/`      | Screenshot for README (`app.png`).                                                                                                    |
+| File            | Role                                                                                                                                         |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json` | Declares content scripts (X/Twitter URLs), storage permission, popup, icon, background script.                                               |
+| `background.js` | Background script: badge countdown when Refresh Home is on; listens for `X_BOOST_REFRESH_RESET` and `storage.onChanged` (refresh keys only). |
+| `content.js`    | Injected into X/Twitter. Loads settings, runs queue + MutationObserver, scroll and refresh timers; notifies background before reload.        |
+| `popup/`        | Popup UI: toggles and steppers for all settings; reads `queueLength` from storage for the queue stat.                                        |
+| `icons/`        | Extension icon (SVG).                                                                                                                        |
+| `preview/`      | Screenshot for README (`app.png`).                                                                                                           |
 
 ## Requirements
 
@@ -158,4 +158,4 @@ Defaults: delay 10 s, refresh 60 s, scroll 5 s. The popup configures all of the 
 
 ## License
 
-This project is licensed under the MIT license. See the [LICENSE](../Wordler/LICENSE) file for more info.
+This project is licensed under the MIT license. See the [LICENSE](./LICENSE) file for more info.
