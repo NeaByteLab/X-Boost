@@ -1,0 +1,32 @@
+{
+  "manifest_version": 2,
+  "name": "X-Boost",
+  "version": "0.1.0",
+  "description": "Auto-like posts on X while you surf. Act like a user.",
+  "permissions": ["storage", "*://*.x.com/*", "*://*.twitter.com/*"],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "browser_action": {
+    "default_icon": "icons/icon.svg",
+    "default_title": "X-Boost",
+    "default_popup": "popup/popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.x.com/*", "*://*.twitter.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "x-boost@neabyte.local",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  }
+}
