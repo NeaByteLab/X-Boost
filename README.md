@@ -73,12 +73,9 @@ flowchart TD
   E --> F{enabled?}
   F -->|yes| G[startObserving]
   F -->|no| H[skip]
-  E --> I{refreshEnabled?}
-  I -->|yes| J[startRefresh]
+  E --> I{scrollEnabled?}
+  I -->|yes| J[startScroll]
   I -->|no| K[skip]
-  E --> L{scrollEnabled?}
-  L -->|yes| M[startScroll]
-  L -->|no| N[skip]
 ```
 
 On load, the content script fetches settings and starts only the features that are enabled.
@@ -121,10 +118,10 @@ sequenceDiagram
   Popup->>Storage: local.set({ key, value })
   Storage->>Content: onChanged (area: local)
   Content->>Content: local.get then applySettings
-  Content->>Content: start/stop observer, refresh, scroll
+  Content->>Content: start/stop observer, scroll
 ```
 
-When the user changes a setting in the popup, the content script receives `storage.onChanged`, fetches full storage and reapplies settings, then starts or stops the corresponding timers/observer.
+When the user changes a setting in the popup, the content script receives `storage.onChanged`, fetches full storage and reapplies settings, then starts or stops the corresponding timers/observer. Refresh is driven by the background script (countdown + tab reload).
 
 ## Settings
 
@@ -141,14 +138,14 @@ Defaults: delay 10 s, refresh 60 s, scroll 5 s. The popup configures all of the 
 
 ## File structure
 
-| File            | Role                                                                                                                                         |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `manifest.json` | Declares content scripts (X/Twitter URLs), storage permission, popup, icon, background script.                                               |
-| `background.js` | Background script: badge countdown when Refresh Home is on; listens for `X_BOOST_REFRESH_RESET` and `storage.onChanged` (refresh keys only). |
-| `content.js`    | Injected into X/Twitter. Loads settings, runs queue + MutationObserver, scroll and refresh timers; notifies background before reload.        |
-| `popup/`        | Popup UI: toggles and steppers for all settings; reads `queueLength` from storage for the queue stat.                                        |
-| `icons/`        | Extension icon (SVG).                                                                                                                        |
-| `preview/`      | Screenshot for README (`app.png`).                                                                                                           |
+| File            | Role                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `manifest.json` | Declares content scripts (X/Twitter URLs), storage and tabs permissions, popup, icon, background script.                                                    |
+| `background.js` | Background script: badge countdown when Refresh Home is on; triggers tab reload when countdown hits 0; listens for `storage.onChanged` (refresh keys only). |
+| `content.js`    | Injected into X/Twitter. Loads settings, runs queue + MutationObserver and scroll timer; listens for reload command from background.                        |
+| `popup/`        | Popup UI: toggles and steppers for all settings; reads `queueLength` from storage for the queue stat.                                                       |
+| `icons/`        | Extension icon (SVG).                                                                                                                                       |
+| `preview/`      | Screenshot for README (`app.png`).                                                                                                                          |
 
 ## Requirements
 

@@ -3,8 +3,6 @@
   const defaultSettings = {
     delaySeconds: 10,
     enabled: false,
-    refreshEnabled: false,
-    refreshIntervalSeconds: 60,
     scrollEnabled: false,
     scrollIntervalSeconds: 5
   }
@@ -23,9 +21,6 @@
   let queue = []
   let queued = new WeakSet()
   let queueTimer = null
-  let refreshEnabled = false
-  let refreshIntervalMs = 60000
-  let refreshTimer = null
   let scrollEnabled = false
   let scrollIntervalMs = 5000
   let scrollTimer = null
@@ -80,7 +75,7 @@
   /**
    * Apply stored settings to module state.
    * @description Writes each defined key into module state.
-   * @param storedItems - Storage result with delay, enabled, refresh, scroll keys
+   * @param storedItems - Storage result with delay, enabled, scroll keys
    */
   function applySettings(storedItems) {
     if (storedItems.delaySeconds !== undefined) {
@@ -88,12 +83,6 @@
     }
     if (storedItems.enabled !== undefined) {
       enabled = !!storedItems.enabled
-    }
-    if (storedItems.refreshEnabled !== undefined) {
-      refreshEnabled = !!storedItems.refreshEnabled
-    }
-    if (storedItems.refreshIntervalSeconds !== undefined) {
-      refreshIntervalMs = clampMs(storedItems.refreshIntervalSeconds * 1000, 30000, 300000)
     }
     if (storedItems.scrollEnabled !== undefined) {
       scrollEnabled = !!storedItems.scrollEnabled
@@ -197,37 +186,6 @@
     if (scrollTimer) {
       clearInterval(scrollTimer)
       scrollTimer = null
-    }
-  }
-
-  /**
-   * Start periodic page refresh on home.
-   * @description No-op when not home; else sets refresh interval.
-   */
-  function startRefresh() {
-    if (!isHomePage()) {
-      return
-    }
-    stopRefresh()
-    refreshTimer = setInterval(() => {
-      if (refreshEnabled && isHomePage()) {
-        runtime.sendMessage({
-          type: 'X_BOOST_REFRESH_RESET',
-          intervalSeconds: Math.round(refreshIntervalMs / 1000)
-        })
-        location.reload()
-      }
-    }, refreshIntervalMs)
-  }
-
-  /**
-   * Stop page refresh timer.
-   * @description Clears refresh interval and resets handle.
-   */
-  function stopRefresh() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer)
-      refreshTimer = null
     }
   }
 
@@ -349,9 +307,6 @@
       if (enabled) {
         startObserving()
       }
-      if (refreshEnabled) {
-        startRefresh()
-      }
       if (scrollEnabled) {
         startScroll()
       }
@@ -364,7 +319,12 @@
    * @param storageChanges - Map of key to { oldValue, newValue }
    * @param areaName - Storage area; we only handle local
    */
-  storage.onChanged.addListener((storageChanges, areaName) => {
+  runtime.onMessage.addListener(msg => {
+    if (msg && msg.type === 'X_BOOST_DO_REFRESH' && isHomePage()) {
+      location.reload()
+    }
+  })
+  storage.onChanged.addListener((_storageChanges, areaName) => {
     if (areaName !== 'local') {
       return
     }
@@ -374,10 +334,6 @@
         startObserving()
       } else {
         stopObserving()
-      }
-      stopRefresh()
-      if (refreshEnabled) {
-        startRefresh()
       }
       stopScroll()
       if (scrollEnabled) {

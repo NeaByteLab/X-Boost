@@ -12,8 +12,6 @@
     refreshEnabled: false,
     refreshIntervalSeconds: 60
   }
-  /** Runtime API for message listener */
-  const runtime = browserOrChrome.runtime
   /** Storage API; local used for get/set */
   const storage = browserOrChrome.storage
   /** Local storage area for extension settings */
@@ -63,6 +61,18 @@
     if (countdownSeconds <= 0) {
       countdownSeconds = intervalSeconds
       setBadge(countdownSeconds)
+      const tabsApi = browserOrChrome.tabs
+      if (tabsApi && tabsApi.query) {
+        tabsApi.query({ url: ['*://*.x.com/*', '*://*.twitter.com/*'] }, tabList => {
+          if (tabList && tabList.length) {
+            tabList.forEach(tab => {
+              if (tab.id != null) {
+                tabsApi.sendMessage(tab.id, { type: 'X_BOOST_DO_REFRESH' }).catch(() => {})
+              }
+            })
+          }
+        })
+      }
       return
     }
     setBadge(countdownSeconds)
@@ -82,20 +92,6 @@
     countdownSeconds = intervalSeconds
     setBadge(countdownSeconds)
     countdownTimer = setInterval(tick, 1000)
-  }
-
-  /**
-   * Reset countdown to given seconds.
-   * @description Resets countdown when message received; keeps running.
-   * @param seconds - New interval in seconds
-   */
-  function resetCountdown(seconds) {
-    if (!countdownTimer) {
-      return
-    }
-    intervalSeconds = seconds != null ? Math.max(1, Math.floor(seconds)) : intervalSeconds
-    countdownSeconds = intervalSeconds
-    setBadge(countdownSeconds)
   }
 
   /**
@@ -138,20 +134,5 @@
         applyRefreshState(!!storedItems.refreshEnabled, storedItems.refreshIntervalSeconds || 60)
       })
     }, 50)
-  })
-
-  /**
-   * Handle refresh reset message from content.
-   * @description Resets countdown to interval from message.
-   * @param incomingMessage - Message with type and intervalSeconds
-   */
-  runtime.onMessage.addListener(incomingMessage => {
-    if (
-      incomingMessage &&
-      incomingMessage.type === 'X_BOOST_REFRESH_RESET' &&
-      incomingMessage.intervalSeconds != null
-    ) {
-      resetCountdown(incomingMessage.intervalSeconds)
-    }
   })
 })()
